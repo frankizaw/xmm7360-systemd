@@ -53,7 +53,7 @@ A bar widget showing the connection state lives in a separate repo:
 
 ## License
 
-`xmm7360-pci/` is © its upstream authors (genua GmbH, James Wah and
+`xmm7360-pci/` is copyright its upstream authors (genua GmbH, James Wah and
 contributors). The kernel module source is dual-licensed GPL-2.0 OR
 BSD-3-Clause (see the header of `xmm7360-pci/xmm7360.c`).
 Everything else in this repository is MIT licensed (see `LICENSE`).
