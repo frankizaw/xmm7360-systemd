@@ -1,0 +1,41 @@
+#!/bin/bash
+# Laczy LTE przez modem XMM7360 (sterownik iosm + skrypty RPC z xmm7360-pci).
+# Uruchamiane jako root przez xmm7360.service.
+set -u
+
+SCRIPT=/opt/xmm7360-pci/rpc/open_xdatachannel.py
+CONF=/etc/xmm7360
+RPC_DEV=/dev/wwan0xmmrpc0
+LOG=/var/log/xmm7360.log
+
+has_ip() { ip -4 addr show wwan0 2>/dev/null | grep -q 'inet '; }
+
+: >"$LOG"
+
+modprobe iosm
+for _ in $(seq 1 15); do
+    [ -e "$RPC_DEV" ] && break
+    sleep 1
+done
+if [ ! -e "$RPC_DEV" ]; then
+    echo "xmm7360: brak $RPC_DEV po zaladowaniu iosm" | tee -a "$LOG"
+    exit 1
+fi
+
+# open_xdatachannel.py konczy sie kodem 1 nawet przy sukcesie, a bez IP
+# potrafi petlic sie w nieskonczonosc -- liczy sie tylko adres na wwan0.
+timeout --kill-after=10 90 python3 -E -s "$SCRIPT" -c "$CONF" >>"$LOG" 2>&1 || true
+
+if ! has_ip; then
+    echo "xmm7360: brak adresu IP na wwan0 (szczegoly: $LOG)" | tee -a "$LOG"
+    exit 1
+fi
+
+# DNS operatora dla systemd-resolved; bez resolved dziala i tak.
+dns=$(grep "DNS server(s):" "$LOG" | tail -1 | sed 's/.*: //; s/,//g')
+if [ -n "$dns" ]; then
+    # shellcheck disable=SC2086
+    resolvectl dns wwan0 $dns 2>/dev/null || true
+fi
+
+echo "xmm7360: polaczono, $(ip -4 -br addr show wwan0)"

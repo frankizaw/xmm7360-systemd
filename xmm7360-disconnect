@@ -1,0 +1,14 @@
+#!/bin/bash
+# Rozlacza LTE i wylacza radio. Skrypty RPC nie umieja odlaczyc modemu od
+# sieci, wiec jedyny pewny sposob to wyladowanie sterownika iosm.
+set -u
+
+ip link set wwan0 down 2>/dev/null || true
+ip addr flush dev wwan0 2>/dev/null || true
+modprobe -r iosm 2>/dev/null || true
+
+if lsmod | grep -q '^iosm '; then
+    echo "xmm7360: nie udalo sie wyladowac iosm" >&2
+    exit 1
+fi
+echo "xmm7360: rozlaczono, radio wylaczone"

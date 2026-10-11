@@ -1,0 +1,10 @@
+[Unit]
+Description=LTE przez modem Intel XMM7360 (Fibocom L850-GL)
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStartSec=150
+ExecStart=/usr/local/bin/xmm7360-connect
+ExecStop=/usr/local/bin/xmm7360-disconnect
